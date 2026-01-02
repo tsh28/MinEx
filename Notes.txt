@@ -1,0 +1,97 @@
+Bid side: buy orders (price, qty). Highest price has priority.
+
+Ask side: sell orders. Lowest price has priority.
+
+Most venues use Price-Time Priority: best price first, then earlier time first.
+
+
+
+mini-exchange/
+  CMakeLists.txt
+  README.md
+  .clang-format
+  .gitignore
+
+  cmake/
+    toolchains/                 # optional cross / sanitizer configs
+    warnings.cmake              # compile flags / warnings-as-errors
+    sanitizers.cmake            # ASan/UBSan/TSan options
+    lto.cmake                   # optional
+
+  include/
+    mx/                         # public headers (stable-ish API)
+      core/
+        types.hpp               # Price, Qty, IDs, enums
+        messages.hpp            # Command/Event structs (binary-friendly)
+        time.hpp                # Timestamp types + helpers
+        span.hpp                # optional tiny span wrapper if needed
+      util/
+        likely.hpp              # branch prediction macros
+        cacheline.hpp           # alignas(64), padding helpers
+        fixed_string.hpp        # optional later (avoid std::string)
+      engine/
+        engine.hpp              # MatchingEngine interface + config
+        book.hpp                # OrderBook interface
+        event_sink.hpp          # IEventSink
+
+  src/
+    core/
+      types.cpp                 # only if needed (keep mostly header-only)
+      messages.cpp              # (often none)
+      time.cpp
+
+    engine/
+      engine.cpp                # MatchingEngine implementation
+      book.cpp                  # LOB + price levels
+      match_logic.cpp           # optional (keep small at first)
+      validate.cpp              # basic validation (later gateway owns most)
+
+    tools/
+      sim_cli.cpp               # Week 1: script → commands → engine → log
+      replay.cpp                # Week 2+: log → engine → compare
+
+    net/                        # later
+      tcp_gateway.cpp
+      udp_mdp.cpp
+      protocol.hpp
+
+  tests/
+    unit/
+      test_ids.cpp
+      test_messages.cpp
+      test_book_basic.cpp
+      test_matching_basic.cpp
+
+    golden/
+      scripts/
+        simple_cross.txt
+        fifo_fairness.txt
+      expected/
+        simple_cross.log
+        fifo_fairness.log
+
+  bench/
+    bench_engine.cpp            # later: throughput/latency harness
+
+  docs/
+    spec_matching.md
+    spec_messages.md
+    architecture.md
+
+
+
+Minimal requirements: 
+    Accept new limit orders (buy/sell) from users.
+    Store and display the current order book (bids/asks).
+    Match incoming orders against the book (simple price-time priority).
+    Allow order cancellation by ID.
+    Print trades when matches occur.
+    
+
+mx::core (types/messages)
+
+mx::engine (matching engine + book)
+
+mx::tools (CLI/replay tools)
+
+mx::tests (unit + golden)

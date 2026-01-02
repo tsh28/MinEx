@@ -1,0 +1,6 @@
+NEW cid=1 side=B px=10000 qty=10
+NEW cid=2 side=S px=10001 qty=5
+CANCEL oid=1
+NEW cid=3 side=B px=10000 qty=-1
+NEW cid=3 side=B px=-5 qty=10
+
