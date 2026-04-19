@@ -95,3 +95,35 @@ mx::engine (matching engine + book)
 mx::tools (CLI/replay tools)
 
 mx::tests (unit + golden)
+
+
+Flow: 
+1) Client
+
+Sends orders; receives acks/fills. Builds its own view of the book from market data.
+
+2) Order Gateway (front door)
+
+Validates and normalizes orders:
+
+tick size, lot size, max qty
+
+session / rate limits
+Then forwards to matching engine.
+
+3) Matching Engine (the core)
+
+Owns the order book. Applies price-time priority matching. Emits executions/trades.
+
+4) Market Data Publisher
+
+Broadcasts book changes + trade prints with sequence numbers.
+(Real markets often use UDP for speed.)
+
+5) Drop Copy / Recorder
+
+Stores an audit log of what happened (orders and/or executions) for compliance and debugging.
+
+6) Replay / Simulator
+
+Replays recorded messages to reproduce the exact state and verify correctness/perf.

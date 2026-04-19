@@ -1,5 +1,6 @@
 #include "mx/engine/engine.hpp"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -12,17 +13,22 @@ using namespace mx;
 namespace { 
 
 struct TextSink : mx::engine::IEventSink { 
+    explicit TextSink(std::ostream& out) : out_(out) {}
+
     void on_ack_new(const AckNew& ack_new) override { 
-        std::cout << "AckNew: event_seq=" << ack_new.header.event_seq << " order_id=" << ack_new.order_id << "\n"; 
+        out_ << "event_seq=" << ack_new.header.event_seq << " AckNew order_id=" << ack_new.order_id << "\n"; 
     }
 
     void on_ack_cancel(const AckCancel& ack_cancel) override {
-        std::cout << "AckCancel: event_seq=" << ack_cancel.header.event_seq << " order_id=" << ack_cancel.order_id << "\n"; 
+        out_ << "event_seq=" << ack_cancel.header.event_seq << " AckCancel order_id=" << ack_cancel.order_id << "\n"; 
     }
 
     void on_reject(const Reject& reject) override { 
-        std::cout << "Reject: event_seq=" << reject.header.event_seq << " reason=" << static_cast<int>(reject.reason) << "\n"; 
+        out_ << "event_seq=" << reject.header.event_seq << " Reject reason=" << static_cast<int>(reject.reason) << "\n"; 
     }
+
+private:
+    std::ostream& out_;
 }; 
 
 
@@ -42,18 +48,50 @@ bool split_kv(const std::string& tok, std::string& k, std::string& v) {
 
 
 int main(int argc, char* argv[]) { 
-    if (argc != 2) { 
-        std::cerr << "Usage: sim_cli <input_file>\n"; 
+    if (argc != 2 && argc != 4) { 
+        std::cerr << "Usage: sim_cli <input_file> [--log <log_file>]\n"; 
         return 1;
     }
 
-    std::ifstream infile(argv[1]); 
+    std::string input_path = argv[1];
+    std::filesystem::path exe_dir = std::filesystem::path(argv[0]).parent_path(); 
+    std::filesystem::path default_log = exe_dir / ".." / "tests/golden/expected/basic.log";
+
+    // std::filesystem::path exe_dir = std::filesystem::path(argv[0]).parent_path();
+    // std::filesystem::path default_log = exe_dir / ".." / "tests/golden/expected/basic.log";
+    std::string log_path = default_log.lexically_normal().string();
+    if (argc == 4) {
+        std::string flag = argv[2];
+        if (flag != "--log") {
+            std::cerr << "Usage: sim_cli <input_file> [--log <log_file>]\n";
+            return 1;
+        }
+        log_path = argv[3];
+    }
+
+    std::ifstream infile(input_path); 
     if (!infile.is_open()) { 
-        std::cerr << "Error opening file: " << argv[1] << "\n"; 
+        std::cerr << "Error opening file: " << input_path << "\n"; 
         return 1; 
     }
 
-    TextSink sink; 
+    std::filesystem::path log_dir = std::filesystem::path(log_path).parent_path();
+    if (!log_dir.empty()) {
+        std::error_code ec;
+        std::filesystem::create_directories(log_dir, ec);
+        if (ec) {
+            std::cerr << "Error creating log directory: " << log_dir << "\n";
+            return 1;
+        }
+    }
+
+    std::ofstream logfile(log_path); 
+    if (!logfile.is_open()) { 
+        std::cerr << "Error opening log file: " << log_path << "\n"; 
+        return 1;
+    }
+
+    TextSink sink(logfile); 
     mx::engine::MatchingEngine engine(sink); 
     std::string line; 
     while (std::getline(infile, line)) { 

@@ -1,0 +1,5 @@
+event_seq=1 AckNew order_id=1
+event_seq=2 AckNew order_id=2
+event_seq=3 AckCancel order_id=1
+event_seq=4 Reject reason=0
+event_seq=5 Reject reason=1

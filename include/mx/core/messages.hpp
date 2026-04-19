@@ -29,6 +29,8 @@ enum class EventType : uint8_t {
     AckNew, 
     AckCancel, 
     Reject, 
+    Trade, 
+    Fill, 
 }; 
 
 struct EventHeader {
@@ -52,17 +54,29 @@ struct Reject {
 }; 
 
 struct Trade {
-    // TODO: implement 
+    EventHeader header;
+    PriceTicks price;
+    Qty qty;
+    Side aggresor; 
+    OrderId taker; 
+    OrderId maker; 
+    ExecId exec_id; 
 }; 
 
 struct Fill { 
-    //TODO: implement 
+    EventHeader header; 
+    OrderId order_id; 
+    ExecId exec_id;
+    PriceTicks price; 
+    Qty qty; 
 }; 
 
 static_assert(std::is_trivially_copyable_v<NewOrder>); 
 static_assert(std::is_trivially_copyable_v<CancelOrder>);
 static_assert(std::is_trivially_copyable_v<AckNew>);
 static_assert(std::is_trivially_copyable_v<Reject>);
+static_assert(std::is_trivially_copyable_v<Trade>);
+static_assert(std::is_trivially_copyable_v<Fill>);
 
 
 }

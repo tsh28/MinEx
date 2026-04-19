@@ -10,16 +10,14 @@ struct IEventSink {
     virtual void on_ack_new(const AckNew& ack_new) = 0;
     virtual void on_ack_cancel(const AckCancel& ack_cancel) = 0;
     virtual void on_reject(const Reject& reject) = 0;
-    // virtual void on_trade(const Trade& trade) = 0;
-    // virtual void on_fill(const Fill& fill) = 0;
+    virtual void on_trade(const Trade& trade) = 0;
+    virtual void on_fill(const Fill& fill) = 0;
 }; 
 
 /*
 
-Why not templates instead of virtual calls?
 
-
-Why virtual is fine here (especially early)
+Why virtual is fine here 
 
 event emission rate is much lower than market data rate
 
@@ -38,7 +36,6 @@ inline lambdas
 
 compile-time sinks
 
-But do not optimize this now. Correctness + clarity first.
 
 */
 

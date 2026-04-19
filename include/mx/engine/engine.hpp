@@ -1,7 +1,7 @@
 #pragma once
 #include "mx/core/messages.hpp"
 #include "mx/engine/event_sink.hpp"
-
+#include "mx/engine/book.hpp"
 
 namespace mx::engine { 
 
@@ -15,6 +15,7 @@ public:
 
 private: 
     IEventSink& sink_;
+    OrderBook book_;  
     mx::OrderId next_order_id_{1}; 
     mx::EventSeq next_event_seq_{1}; 
 

@@ -16,3 +16,13 @@ add_executable(sim_cli
     src/tools/sim_cli.cpp
 )
 target_link_libraries(sim_cli PRIVATE mx_engine)
+
+# Unit tests (GoogleTest)
+enable_testing()
+find_package(GTest REQUIRED)
+add_executable(unit_tests
+    tests/unit/SinkTest.cpp
+)
+target_link_libraries(unit_tests PRIVATE mx_engine GTest::gtest_main)
+target_include_directories(unit_tests PRIVATE include)
+add_test(NAME unit_tests COMMAND unit_tests)
